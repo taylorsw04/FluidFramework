@@ -104,9 +104,9 @@ export enum FieldKind {
  * For now, this is a simple easy to support setup.
  *
  * Note that use of non-Nothing values might be restricted in the actual user facing schema languages:
- * we could instead choose to get by with the only types supporting values being effectively builtin,
- * though this limitation could prevent users for updating/extending
- * the primitive schema to allow the annotations they might want.
+ * we could instead choose to get by with the only types supporting values being effectively built-in,
+ * though this limitation could prevent users from updating/extending the primitive schema to allow
+ * the annotations they might want.
  *
  * An interesting alternative to this simple value Enum would be to use something more expressive here, like JsonSchema:
  * since this is modeling immutable data, we really just need a way to figure out which if these value schema allow
@@ -186,8 +186,7 @@ export interface TreeSchema {
      * To forbid this map like usage, use {@link emptyField} here.
      *
      * Usually `FieldKind.Value` should NOT be used here
-     * since no nodes can ever be in schema are in schema if you use `FieldKind.Value` here
-     * (that would require infinite children).
+     * since no nodes can ever be in schema if you use `FieldKind.Value` here as that would require infinite children.
      * This pattern, which produces a schema which can never be met, is used by {@link neverTree},
      * and can be useful in special cases (like a default stored schema when none is specified).
      */
@@ -202,10 +201,10 @@ export interface TreeSchema {
      * users can attach information they understand to any tree without risk of name collisions.
      * This is not the only way to do "augmentations":
      * another approach is for the applications that wish to add them to include
-     * the augmentation in their view schema on the nodes they with to augment,
+     * the augmentation in their view schema on the nodes they wish to augment,
      * and update the stored schema to permit them as needed.
      *
-     * This schema system could work with extraGlobalFields unconditionally on
+     * This schema system could work with extraGlobalFields unconditionally turned on
      * (justified as allowing augmentations everywhere though requiring stored schema changes),
      * or unconditionally off (requiring augmentations to sometimes update stored schema).
      * Simplifying this system to not have extraGlobalFields and default it to on or off is a design decision which

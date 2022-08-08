@@ -9,7 +9,7 @@ An example schema system is included which does take a position on exactly what 
 # Definitions
 
 -   `stored data` : data stored in the Fluid container by the tree dds.
--   `stored schema` : a set of constraints it is valid to assume the `stored data` meets, and that must be maintained when editing (including through conflicts) by the tree dds itself.
+-   `stored schema` : a set of constraints that the `stored data` can be assumed to meet, and that must be maintained when editing (including through conflicts) by the tree dds itself.
     All users of the tree must agree on this if they are editors.
     Any changes to this must be sequenced as Fluid ops.
     Generally implemented by storing schema information (or references to immutable publicly available schema information) in the tree dds itself.
@@ -20,7 +20,7 @@ An example schema system is included which does take a position on exactly what 
     For example, if looking at a node in a trait, that trait may provide the context that only a specific list of types are allowed, or that additional nodes can't be added to that trait.
     More complex context dependent schema, for example that a node of a particular type in one location in the app permits different children that it does elsewhere, can cause maintaining schema to be hard during merges.
     While nothing in this document (other than the specific example schema system) restricts what could be used in the context, we will assume that non-local context based constraints
-    (ex: everything other than a type putting rules on what can go immediately under that type, and do not depend on its parent) will not be included, at least initially.
+    (ex: types other than those that do not depend on their parent and only put rules on what can go immediately under themselves) will not be included, at least initially.
     Such systems (for example parametric types) can be added later if desired.
 
 # The Design Space
@@ -37,7 +37,7 @@ Places we can store stored schema information:
 -   As stored data
 -   Hard coded into shared tree (constraints like the tree being a tree not a DAG fall into this)
 -   Injected via a shared-tree subclass or other Fluid configuration (schema data / constraints shipped as code)
--   In some external repository: the repository defines an append only namespace of schema
+-   In some external repository: the repository defines an append only namespace of schema.
     This repository is known about by shared-tree somehow (any of the other items in this list could contain the reference to the repository)
 
 ## Places that can refer to/apply stored schema:
@@ -48,33 +48,33 @@ Places we can store stored schema information:
 -   In other schema: for example, a schema can apply specific schema to its children.
     This allows for `contextual schema` (under one parent the same type might have different rules compared to under another parent).
 
-Note that its possible to refer to schema in a way that's unambiguous, but code handing the data might not always have the schema.
-For example document could refer to a schema by its hash, or name in a append only namespace.
+Note that it's possible to refer to schema in a way that's unambiguous, but code handing the data might not always have the schema.
+For example, a document could refer to a schema by its hash or name in an append-only namespace.
 This can have interesting implications for updates to new schema (ex: one client adds data using a schema shipped as code that another client does not have).
 Some of the options do not have this issue (inline, central repository (assuming you are ok going down if it goes down and schema are not cached), and in stored data).
 
 # What options to support.
 
-Thats a lot of options, and I think there are good reasons for all of them, so long term, we likely want all of them to be options to some extent.
+That's a lot of options, and I think there are good reasons for all of them, so long term, we likely want all of them to be options to some extent.
 But I think we can pick a good subset for the now, and leave open the option of extending it in the future.
 
 I think we want to at least:
 
 -   Make adoption of different constraint/schema systems optional and incremental: all of these different options should be opt in, and easy to add to and existing application if desired.
--   Provide a schema-on-read system (ex: schematize) that can give an application a nice interface to the data, including validation and error handling
+-   Provide a schema-on-read system (ex: schematize) that can give an application a nice interface to the data, including validation and error handling.
     Anytime the view schema and stored schema are different, this can allow the app to function as well as possible (detect and handle out of schema data, both on read and on edit, as localized as permitted by the provided error handlers).
--   Provide at least one way to customize the stored schema (schema-on-write), which can at least do type based constraints.
+-   Provide at least one way to customize the stored schema (schema-on-write), which can at least do type-based constraints.
 -   Have at least one good design-pattern apps can use to handle schema migrations for each way they have to enforce/specify schema (make sure this supports a roll out process were clients have mixed code versions, and old documents will be supportable forever)
 
 # Expected usage patterns
 
 I suspect most data will be handled in one of the two following approaches:
 
--   pure schema-on-read: no customization of stored schema.
--   almost pure schema-on-write: only using schema-on-read to assist with schema migration so their view schema doesn't have to deal with old formats (which unavoidably pile up in the stored schema)
-    They may additionally use schema-on-read to enforce/fix some invariants the stored schema system isn't expressive enough to declare (referential integrity for graph like references, numeric ranges, and any other appellation level invariants that are desired)
+-   Pure schema-on-read: no customization of stored schema.
+-   Almost pure schema-on-write: only using schema-on-read to assist with schema migration so their view schema doesn't have to deal with old formats (which unavoidably pile up in the stored schema)
+    They may additionally use schema-on-read to enforce/fix some invariants the stored schema system isn't expressive enough to declare (referential integrity for graph like references, numeric ranges, and any other application-level invariants that are desired)
 
-Note that while many apps might do mostly one or the other, a reasonable design pattern is take one approach for some data, and the other approach for the rest.
+Note that while many apps might do mostly one or the other, a reasonable design pattern is to take one approach for some data, and the other approach for the rest.
 For example the core parts of a document might take a schema on write approach, but allow extensible metadata that is handled with schema on read
 (which is a great place for different applications using the same document to store their data if they want to be less formal about versioning, and do best effort interop with each-other's metadata).
 
@@ -103,24 +103,24 @@ Applications which wish to rely entirely on schema-on-read for some or all of th
 
 ## Use as `Stored Schema`
 
--   Document load: The application can check that their view schema match stored schema, and check that the root has supported content.
+-   Document load: The application can check that their view schema matches stored schema and check that the root has supported content.
     See `checkCompatibility` in [Schema.ts](./Schema.ts) for an example of how this could work.
--   Writers: When inserting new content, and updating modified nodes, share-tree can check them against the schema in the document.
+-   Writers: When inserting new content, and updating modified nodes, shared-tree can check them against the schema in the document.
     If the schema is missing, it must be added as part of the edit: for this the editing API needs to take in types which can have their desired stored schema queried.
 -   Change application can access schema information: changes can conflict if they violate schema (or maybe only check at end of transaction? Or at special marked places and at end?).
     Change application could (someday) adjust behavior based on schema (ex: provide set semantics to a sequence) or have schema specific edits,
     but initial version will just detect violations and mark as conflicted.
 -   We can ways to update existing schema:
-    -   Could support OP that changes a schema in a way where all data that was accepted by the old schema is accepted by the new one (ex: add optional fields (if compatible with extra fields), move required field into extraFields, add a type to a field).
-    -   Could even do things like apply a change to all nodes with a specific type to enable edits which modify a schema and update data atomically (ex: alter table like from sql). This does not work with partial checkouts well.
+    -   Could support an Op that changes a schema in a way where all data that was accepted by the old schema is accepted by the new one (ex: add optional fields (if compatible with extra fields), move required field into extraFields, add a type to a field).
+    -   Could even do things like apply a change to all nodes with a specific type to enable edits which modify a schema and update data atomically (ex: alter table like from sql). This does not work well with partial checkouts.
 
 ## Use as `View Schema`
 
--   Document load: The application can check that their view schema match stored schema, and check that the root has supported content.
+-   Document load: The application can check that their view schema matches stored schema and check that the root has supported content.
     See `checkCompatibility` in [Schema.ts](./Schema.ts) for an example of how this could work.
--   Let app provide handlers/converters to adapt data that does not match the desired view schema (ex: support old formats), and apply them through Schematize.
+-   The app provides handlers/converters to adapt data that does not match the desired view schema (ex: support old formats). These are applied by Schematize.
 
-## Design-pattern apps can use to handle schema migrations
+## Design patterns apps can use to handle schema migrations
 
 To support making changes to schema used in existing documents:
 

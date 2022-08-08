@@ -18,7 +18,7 @@ The current feature focus is on:
     -   Ability to easily (sharing code with client) spin up optional services to improve scalability further (ex: server side summaries, indexing, permissions etc.)
     -   Efficient data encodings.
 - Expressiveness:
-    -   Efficient support for moves, including moves or large sections of large sequences, and large subtrees.
+    -   Efficient support for moves, including moves of large subsequences and large subtrees.
     -   Support history operations (ex: undo and redo).
     -   Flexible schema system that has design patterns for making schema changes over time.
 - Workflows:
@@ -30,7 +30,7 @@ The current feature focus is on:
 
 ## Whats missing from existing DDSes?
 
-`directory` and `map` can not provide merge resolution that guarantees well-formedness of trees while supporting the desired editing APIs (like subsequence move),
+`directory` and `map` cannot provide merge resolution that guarantees well-formedness of trees while supporting the desired editing APIs (like subsequence move),
 and are missing (and cannot be practically extended to have) efficient ways to handle large data or schema.
 
 `sequence` does not capture the hierarchy or schema, and also does not handle partial checkouts.
