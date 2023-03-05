@@ -47,6 +47,13 @@ export function FluidObjectView(props: FluidObjectViewProps): React.ReactElement
 		return <Spinner />;
 	}
 
+	const dataTypeStyle = {
+		color: "blue",
+		opacity: 0.6,
+		fontWeight: "lighter",
+		fontSize: "small",
+	};
+
 	// TODO: is this the right type check for this?
 	const sharedObject = resolvedData as ISharedObject;
 	if (sharedObject?.attributes?.type !== undefined) {
@@ -54,12 +61,19 @@ export function FluidObjectView(props: FluidObjectViewProps): React.ReactElement
 		return renderOptions[dataObjectType] === undefined ? (
 			<Stack>
 				<StackItem>
-					No renderer provided for shared object type "{dataObjectType}"
+					No renderer provided for shared object type &quot;{dataObjectType}&quot;
 				</StackItem>
 			</Stack>
 		) : (
 			renderOptions[dataObjectType](sharedObject, (data) => (
-				<DynamicDataView data={data} renderOptions={renderOptions} />
+				<>
+					<div>
+						<span style={dataTypeStyle}>{"Fluid Object"}</span>
+					</div>
+					<div>
+						<DynamicDataView data={data} renderOptions={renderOptions} />
+					</div>
+				</>
 			))
 		);
 	}
