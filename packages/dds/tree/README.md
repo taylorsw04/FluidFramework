@@ -1,32 +1,57 @@
 # @fluid-internal/tree
 
-This DDS is not yet ready for public consumption. For a high-level overview of the goals of this project, see the [roadmap](docs/roadmap.md).
+This DDS is not yet ready for public consumption.
+
+This document is intended to familiarize a developer with the Shared Tree and provide guidelines and examples for using it.
+
+For an introduction to the tree and the philosophy behind it, see the [primer](docs/primer.md).
+
+For a high-level overview of the project and its status, see the [project overview](docs/project%20overview.md).
+
+For a list of the currently available or planned features, see the [feature list](docs/feature%20list.md).
+
+For the architectural design and layout of the project, see the [architecture ]
 
 ## Motivation
 
-There are a lot of different factors motivating the creation of this Tree DDS.
-A wide variety of possible consumers (across several companies) have overlapping feature requirements
-which seem like they can best be met by collaborating on a single feature rich tree implementation powered by Fluid.
+The Fluid Framework is a client/server tech stack designed to intuitively synchronize data between clients in real time.
+The framework consists of 3 key parts: the Fluid Service, Fluid Runtime, and Distributed Data Structures (DDSes).
+The **Fluid Service** is responsible for sequencing and broadcasting changes (ops) to each client and persisting state to storage.
+The **Fluid Runtime** is responsible for sending local ops to the Fluid Service and merging incoming ops.
+The **DDS**es are the data structures that the Fluid Service and Fluid Runtime keep synchronized.
+
+From the perspective of an application developer, using the Fluid Framework is largely an exercise in choosing the right DDSes and integrating them into the application.
+For example, one of the simplest DDSes is a Shared Map that can be used in much the same way a developer would use a standard JavaScript map.
+The key difference is that a Shared Map will reflect remote changes.
+
+Fluid Framework has evolved significantly in response to developer feedback.
+One key piece of feedback has been the consistent desire for a DDS that can effectively model complex, hierarchical data.
+Shared Tree is the response to that feedback.
 The current feature focus is on:
 
 -   Semantics:
-    -   High quality semantic merges, including moves of parts of sequences (called "slice moves").
-    -   Transactionality.
-    -   Support schema in a semantically robust way.
+    -   High quality intention-preserving merges, including moves of parts of sequences.
+    -   Schema enforced during merges to guarantee data consistency.
+    -   Transactionality and atomicity.
+    -   A flexible constraint system to preserve application invariants during concurrency.
+    -   High-level commanding layer to capture deeper intent during editing.
 -   Scalability:
+    -   Efficient storage, including compact data encodings and virtualization/incrementality.
     -   Support for partial checkouts: allow efficiently viewing and editing parts of larger datasets without downloading the whole thing.
-    -   Ability to easily (sharing code with client) spin up optional services to improve scalability further (ex: server side summaries, indexing, permissions etc.)
-    -   Efficient data encodings.
+    -   Accelerated queries via synchronized, persisted indexes.
 -   Expressiveness:
-    -   Efficient support for moves, including moves of large sections of large sequences, and large subtrees.
-    -   Support history operations (ex: undo and redo).
+    -   Graph-like references between areas of the tree.
+    -   Efficient support for moves, including moves of large sections of sequences and large subtrees.
+    -   History operations (ex: undo and redo).
     -   Flexible schema system that has design patterns for making schema changes over time.
 -   Workflows:
+    -   Asynchronous editing flows using views isolated from other changes.
     -   Good support for offline.
     -   Optional support for branching and history.
--   Extensibility: It must be practical to accommodate future users with needs beyond what we can afford to support in the initial version. This includes needs like:
-    -   New field kinds to allow data-modeling with more specific merge semantics (ex: adding support for special collections like sets, or sorted sequences)
-    -   New services (ex: to support permissions, server side indexing etc.)
+-   Ergonomics:
+    -   Schema-aware reading and writing of the tree for type safe application logic.
+-   Extensibility:
+    -   Embedded collections to allow data-modeling with more specific merge semantics (ex: maps/sets, sorted sequences).
 
 ## Whats missing from existing DDSes?
 
@@ -44,9 +69,9 @@ It also does merge resolution in a way that requires having the whole tree in me
 Much of what is desired is theoretically possible as additional feature work on `PropertyDDS`,
 but it was decided that it makes more sense to build up this more featureful DDS from scratch leveraging the learnings from `PropertyDDS` and `experimental/tree`.
 
-## Why not a tree made out of existing DDS implementations and how this relates to the Fluid Framework itself?
+## Why not a tree made out of existing DDSes?
 
-Currently existing DDS implementations can not support cross DDS transactions.
+Currently existing DDS implementations cannot support cross DDS transactions.
 For example, moving part of a sequence from one sequence DDS to another cannot be done transactionally, meaning if the source of the move conflicts, the destination half can't be updated or aborted if it's in a different DDS.
 Cross DDS moves also currently can't be as efficient as moves withing a single DDS, and there isn't a good way to do cross DDS history or branching without major framework changes.
 There are also some significant per DDS performance and storage costs that make this approach much more costly than using a single DDS.
@@ -55,7 +80,7 @@ One way to think about this new tree DDS is to try and mix some of the Fluid-Fra
 If this effort is successful, it might reveal some improved abstractions for modularizing hierarchical collaborative data-structures (perhaps "field kinds"),
 which could make their way back into the framework, enabling some features specific to this tree (ex: history, branching, transactional moves, reduced overhead) to be framework features instead.
 
-From this perspective, this tree serves as a proof of concept for abstractions and features which could benefit the framework, but are easier to implement within a DDS initially.
+From this perspective, this tree serves as a proof of concept for abstractions and features which could benefit the framework, but are currently easier to implement within a DDS initially.
 This tree serves to get these feature into the hands of users much faster than could be done at the framework level.
 
 ## Recommended Developer Workflow
