@@ -8,6 +8,8 @@ For more information on Shared Tree, including code examples and a high level de
 
 The project is separated into three primary focus areas: **functionality**, **performance**, and **stability**.
 The next sections detail the high-level goals for each area.
+The individual investments of the Shared Tree project are roughly bucketed into a set of workstreams that roll up to the focus area to which they accrue value.
+While these can often be implemented in parallel, there are often dependencies across them. Those dependencies and the progress in each workstream are detailed in the [roadmap](#roadmap) section.
 
 ## Functionality
 
@@ -16,6 +18,15 @@ This area focuses on the tree can do this while being ergonomic and extensible.
 It is covered much more extensively in other documents.
 For a full list of the major features (existing and planned) in Shared Tree, see the [feature list](feature%20list.md).
 For a better understanding of the value proposition of Shared Tree, see the [primer](primer.md).
+
+-   Workstreams that accrue to _functionality_:
+    -   **Core concept designs**
+    -   **Basic functionality**
+    -   **Move**
+    -   **Ergonomics**
+    -   **Schema**
+    -   **Collections**
+    -   **Advanced collaboration**
 
 ## Performance
 
@@ -36,6 +47,10 @@ As the Shared Tree feature set grows, the performance goals will also evolve to 
 -   Summarization performance will scale with the scale of the data being changed – currently summarization performance is determined by the size of the complete data set
 -   Boot performance can be optimized by loading only the data required through virtualization
 
+-   Workstreams that accrue to _performance_:
+    -   **Scale**
+    -   **Performance testing**
+
 ## Stability
 
 Shared Tree is a complex DDS aimed at supporting a broad range of data types and merge semantics.
@@ -48,6 +63,10 @@ The following are some of the investments that will ensure Shared Tree is reliab
 -   Code for types and persisting state is isolated and policies are in place to ensure stable migrations between versions
 -   Forwards and backwards compatibility tests
 -   API lifecycle tooling to ensure smooth version rollouts
+
+-   Workstreams that accrue to _stability_:
+    -   **Stability testing**
+    -   **Publishing**
 
 # Roadmap
 
@@ -78,28 +97,6 @@ The current milestones are:
     -   This milestone provides powerful tools to ensure that data within the tree remains consistent with an application's data model regardless of concurrenct editing;
         these tools include the guarantee of data adhering to schema, the ability to specify when edits should conflict, and a high-level command model to capture editing intention.
         These empower developers to explore more complex and semantic collaboration scenarios.
-
-## Workstreams
-
-The individual investments of the Shared Tree project are roughly bucketed into a set of workstreams that roll up to the focus area to which they accrue value.
-These workstreams are:
-
--   Functionality
-    -   **Core concept designs**
-    -   **Basic functionality**
-    -   **Move**
-    -   **Ergonomics**
-    -   **Schema**
-    -   **Collections**
-    -   **Advanced collaboration**
--   Performance
-    -   **Scale**
-    -   **Performance testing**
--   Stability
-    -   **Stability testing**
-    -   **Publishing**
-
-While these can often be implemented in parallel, there are often dependencies across them. Those dependencies and the progress in each workstream are detailed in the next section.
 
 ## Current status
 
@@ -133,7 +130,7 @@ class c Complete;
 
 ```
 
-> Tip: click on each item to read a high-level summary of it in the [feature list](feature%20list.md).
+> Tip: learn more about each item by reading the [feature list](feature%20list.md).
 
 ```mermaid
 ---
@@ -270,6 +267,4 @@ flowchart LR
 
     classDef Milestone fill:#5db7de,stroke:#000,stroke-width:2px,color:#000;
     class LST,PDDS,LTM,GSW,DC Milestone;
-
-    click cursor href "../docs/feature%20list"
 ```
