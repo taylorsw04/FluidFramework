@@ -100,6 +100,12 @@ Note that this API does not include any [strong typing](#type-safe-schema-api) f
 
 This API is called the Editable Tree API and is [here](../src/feature-libraries/editable-tree/README.md).
 
+## Eventing
+
+> In progress
+
+TODO
+
 ## Undo/redo
 
 > In progress

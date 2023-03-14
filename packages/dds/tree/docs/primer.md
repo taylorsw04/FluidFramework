@@ -56,3 +56,31 @@ At the heart of the Shared Tree design is the code responsible for merging chang
 Rebaser supports different merge semantics for different types of data.
 Furthermore, rebaser can enforce schema and other custom constraints on a data set.
 And Rebaser is able to reason over a set of changes and produce a merged result without requiring access to the entire tree.
+
+## TODO
+
+The current feature focus is on:
+
+-   Semantics:
+    -   High quality intention-preserving merges, including moves of parts of sequences.
+    -   Schema enforced during merges to guarantee data consistency.
+    -   Transactionality and atomicity.
+    -   A flexible constraint system to preserve application invariants during concurrency.
+    -   High-level commanding layer to capture deeper intent during editing.
+-   Scalability:
+    -   Efficient storage, including compact data encodings and virtualization/incrementality.
+    -   Support for partial checkouts: allow efficiently viewing and editing parts of larger datasets without downloading the whole thing.
+    -   Accelerated queries via synchronized, persisted indexes.
+-   Expressiveness:
+    -   Graph-like references between areas of the tree.
+    -   Efficient support for moves, including moves of large sections of sequences and large subtrees.
+    -   History operations (ex: undo and redo).
+    -   Flexible schema system that has design patterns for making schema changes over time.
+-   Workflows:
+    -   Asynchronous editing flows using views isolated from other changes.
+    -   Good support for offline.
+    -   Optional support for branching and history.
+-   Ergonomics:
+    -   Schema-aware reading and writing of the tree for type safe application logic.
+-   Extensibility:
+    -   Embedded collections to allow data-modeling with more specific merge semantics (ex: maps/sets, sorted sequences).
