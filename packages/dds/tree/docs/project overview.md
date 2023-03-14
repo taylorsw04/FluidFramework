@@ -57,10 +57,16 @@ The Shared Tree project has many milestones, each of which enable a set of appli
 Many share dependencies and they are often worked on in parallel.
 The current milestones are:
 
--   **Parity with Legacy Shared Tree**
+-   **Basic data synchronization [COMPLETE]**
+    -   For developers eager to start using the Shared Tree DDS, this milestone represents the point where they can do so for scenarios involving transient data.
+        That is, at this stage developers can create a Shared Tree from other data and use it to sync that data between all clients.
+        Insert, delete, and modify operations will be functional; however, the storage formats will not be final at this stage.
+        There will be no data migration strategy for the data stored in the Shared Tree DDS at this stage.
+        The move operation is also not yet available.
+-   **Parity with Legacy Shared Tree [IN PROGRESS]**
     -   This milestone enables developers who were previously using the [legacy (experimental) Shared Tree](https://github.com/microsoft/FluidFramework/tree/main/experimental/dds/tree) to migrate to the Shared Tree.
         At this point, Shared Tree has feature, performance, and stability parity with its legacy counterpart; developers should switch to the new tree as the legacy version will not be under active development.
--   **Parity with PropertyDDS**
+-   **Parity with PropertyDDS [IN PROGRESS]**
     -   This milestone enables developers who were previously using the [PropertyDDS](https://github.com/microsoft/FluidFramework/tree/main/experimental/PropertyDDS) to migrate to the Shared Tree.
         At this point, Shared Tree has feature, performance, and stability parity with PropertyDDS; developers should switch to the new tree as PropertyDDS will not be under active development.
 -   **Larger-than-memory documents**
