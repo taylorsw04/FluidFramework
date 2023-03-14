@@ -19,14 +19,15 @@ It is covered much more extensively in other documents.
 For a full list of the major features (existing and planned) in Shared Tree, see the [feature list](feature%20list.md).
 For a better understanding of the value proposition of Shared Tree, see the [primer](primer.md).
 
--   Workstreams that accrue to _functionality_:
-    -   **Core concept designs**
-    -   **Basic functionality**
-    -   **Move**
-    -   **Ergonomics**
-    -   **Schema**
-    -   **Collections**
-    -   **Advanced collaboration**
+Workstreams that accrue to _functionality_:
+
+-   **Core concept designs**
+-   **Basic functionality**
+-   **Move**
+-   **Ergonomics**
+-   **Schema**
+-   **Collections**
+-   **Advanced collaboration**
 
 ## Performance
 
@@ -47,9 +48,10 @@ As the Shared Tree feature set grows, the performance goals will also evolve to 
 -   Summarization performance will scale with the scale of the data being changed – currently summarization performance is determined by the size of the complete data set
 -   Boot performance can be optimized by loading only the data required through virtualization
 
--   Workstreams that accrue to _performance_:
-    -   **Scale**
-    -   **Performance testing**
+Workstreams that accrue to _performance_:
+
+-   **Scale**
+-   **Performance testing**
 
 ## Stability
 
@@ -64,9 +66,10 @@ The following are some of the investments that will ensure Shared Tree is reliab
 -   Forwards and backwards compatibility tests
 -   API lifecycle tooling to ensure smooth version rollouts
 
--   Workstreams that accrue to _stability_:
-    -   **Stability testing**
-    -   **Publishing**
+Workstreams that accrue to _stability_:
+
+-   **Stability testing**
+-   **Publishing**
 
 # Roadmap
 
