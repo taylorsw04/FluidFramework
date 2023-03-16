@@ -29,7 +29,7 @@ however, Shared Directory has most of the same limitations as a map of maps and 
 
 Without robust support for a hierarchical data model, we’ve seen limited engagement from potential customers.
 In cases where customers have engaged, they have either invested in building their own hierarchical DDS (Property DDS from Autodesk and Experimental Shared Tree from Whiteboard) or they have adopted one of those experimental DDSes.
-In fact, except for Loop and Word, all partners currently tracked by the Fluid Framework team are using Property DDS or Experimental Shared Tree.
+In fact, except for Microsoft Loop, all partners currently tracked by the Fluid Framework team are using Property DDS or Experimental Shared Tree.
 
 This reality led to investment in a new Shared Tree DDS that is a fully supported part of Fluid Framework.
 The goal of this investment is to replace both Experimental Shared Tree and Property DDS by combining the best elements of each of them.
