@@ -19,11 +19,10 @@ It is covered much more extensively in other documents.
 For a full list of the major features (existing and planned) in Shared Tree, see the [feature list](feature%20list.md).
 For a better understanding of the value proposition of Shared Tree, see the [primer](primer.md).
 
-Workstreams that accrue to _functionality_:
+Roadmap workstreams that accrue to _functionality_:
 
 -   **Core concept designs**
 -   **Basic functionality**
--   **Move**
 -   **Ergonomics**
 -   **Schema**
 -   **Collections**
@@ -48,7 +47,7 @@ As the Shared Tree feature set grows, the performance goals will also evolve to 
 -   Summarization performance will scale with the scale of the data being changed – currently summarization performance is determined by the size of the complete data set
 -   Boot performance can be optimized by loading only the data required through virtualization
 
-Workstreams that accrue to _performance_:
+Roadmap workstreams that accrue to _performance_:
 
 -   **Scale**
 -   **Performance testing**
@@ -66,7 +65,7 @@ The following are some of the investments that will ensure Shared Tree is reliab
 -   Forwards and backwards compatibility tests
 -   API lifecycle tooling to ensure smooth version rollouts
 
-Workstreams that accrue to _stability_:
+Roadmap workstreams that accrue to _stability_:
 
 -   **Stability testing**
 -   **Publishing**
@@ -103,7 +102,7 @@ The current milestones are:
 
 ## Current status
 
-The following diagram shows the project's current progression towards delivering different milestones.
+The following diagram shows the project's current workstream progression towards delivering different milestones.
 
 Milestones are displayed as blue diamonds:
 
@@ -141,10 +140,12 @@ title: Shared Tree Roadmap
 ---
 flowchart LR
     subgraph Schema
-        schema_enforcement[Schema - definition & enforcement]
-        json[JSON roundtripping ???]
+        schema_enforcement[Schema - enforcement]
+        schema_def[Schema - definition]
+        json[JSON roundtripping]
     end
     subgraph Basic[Basic functionality]
+        eventing[Eventing]
         undo_redo[Undo/redo]
         identifiers[Node identifiers + lookup index]
         sync_transactions[Synchronous transactions]
@@ -155,17 +156,13 @@ flowchart LR
         stashed_ops[Stashed ops support]
         atomicity[Atomic transactions]
         imd[Insert/Modify/Delete]
+        move_range[Move - node range]
     end
     subgraph Ergonomics
         js_api[JS object style API]
         schema_aware_api[Schema aware tree API]
-        schema_enforcement-->json
-        schema_enforcement-->schema_aware_api
-    end
-    subgraph Move
-        move_range[Move - node range]
-        move_slice[Move - slice range]
-        move_range-->move_slice
+        schema_def-->json
+        schema_def-->schema_aware_api
     end
     subgraph Scale
         cursor[Cursor]
@@ -193,6 +190,7 @@ flowchart LR
         storage-->indexes
         commands[High-level commands]
         constraints[Constraints]
+        move_slice[Move - slice range]
     end
     subgraph Collections
         embedded[Embedded collections]
@@ -234,11 +232,9 @@ flowchart LR
     Basic-->Advanced
     Basic-->LST
     Basic-->PDDS
-    Move-->LST
     Publishing-->LST
     Testing-->LST
 
-    Design-->Move
     Design-->Basic
     Design-->Scale
     Design-->Collections
@@ -258,15 +254,15 @@ flowchart LR
     Schema-->DC
 
     classDef SubGraph stroke-width:2px, font-size:15px;
-    class Design,Collections,Publishing,Testing,Move,Basic,Advanced,Scale,Schema,Ergonomics SubGraph;
+    class Design,Collections,Publishing,Testing,Basic,Advanced,Scale,Schema,Ergonomics SubGraph;
 
     classDef default fill:#8a8a8a,stroke:#000,stroke-width:1px,color:#ffffff;
 
     classDef InProgress fill:#f5e39d,stroke:#000,stroke-width:1px,color:#000;
-    class move_range,move_slice,async_transactions,undo_redo,identifiers,stashed_ops,constraints,imd,js_api,ids_in_runtime,format_stability_policy,performance_validation,fuzz_testing,unit_testing,coverage,local_branches,perf_playground,test_app InProgress;
+    class move_range,async_transactions,undo_redo,identifiers,stashed_ops,constraints,js_api,ids_in_runtime,format_stability_policy,performance_validation,fuzz_testing,unit_testing,coverage,perf_playground,test_app,eventing,atomicity,schema_def,schema_aware_api InProgress;
 
     classDef Complete fill:#a5f59d,stroke:#000,stroke-width:1px,color:#000;
-    class rebaser,data_model,modularity,sync_transactions,id_allocator,cursor Complete;
+    class rebaser,data_model,modularity,sync_transactions,id_allocator,cursor,local_branches,imd Complete;
 
     classDef Milestone fill:#5db7de,stroke:#000,stroke-width:2px,color:#000;
     class LST,PDDS,LTM,GSW,DC Milestone;
