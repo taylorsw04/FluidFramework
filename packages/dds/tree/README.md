@@ -14,4 +14,4 @@ For the architectural design and layout of the project, see the [project archite
 
 ## Getting started with Shared Tree
 
-TODO
+TODO: Add examples and guidance.

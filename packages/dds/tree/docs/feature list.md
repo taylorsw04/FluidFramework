@@ -104,7 +104,11 @@ This API is called the Editable Tree API and is [here](../src/feature-libraries/
 
 > In progress
 
-TODO
+The fluid framework has a robust event system in place for reacting to changes to distributed data structures.
+The Shared Tree should integrate into this system and provide developers an ergonomic way to register for events corresponding to tree changes.
+
+This feature exposes the ability to register for change events on the EditableTree interface.
+The new events, which are registered on specific nodes, include node value changes and changes to a specific subtree.
 
 ## Undo/redo
 
