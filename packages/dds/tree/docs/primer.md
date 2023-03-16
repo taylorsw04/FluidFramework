@@ -5,8 +5,8 @@
 The Fluid Framework is a client/server tech stack designed to intuitively synchronize data between clients in real time.
 The framework consists of 3 key parts: the Fluid Service, Fluid Runtime, and Distributed Data Structures (DDSes).
 The Fluid Service handles sequencing and broadcasting changes (ops) to each client and persisting state to storage.
-The Fluid Runtime handles sending local ops to the Fluid Service and merging incoming ops.
-The DDSes are the data structures that the Fluid Service and Fluid Runtime keep synchronized.
+The Fluid Runtime handles sending local ops to the Fluid Service and handling incoming ops.
+The DDSes are the data structures that consume and produce the Ops that the Fluid Service and Fluid Runtime keep synchronized.
 
 From the perspective of an application developer, using the Fluid Framework is largely an exercise in choosing the right DDSes and integrating them into the application.
 For example, one of the simplest DDSes is a Shared Map that can be used in much the same way a developer would use a standard JavaScript map.
