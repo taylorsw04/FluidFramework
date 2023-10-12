@@ -88,6 +88,32 @@ export class SchemaBuilder<
 	}
 
 	/**
+	 * Define (and add to this library) a {@link TreeSchema} for a {@link FieldNode} with a {@link Sequence}.
+	 *
+	 * The name must be unique among all TreeSchema in the the document schema.
+	 *
+	 * @privateRemarks
+	 * TODO: remove the name and use structural identities to anonymize this
+	 */
+	public list<Name extends TName, const TType extends ImplicitAllowedTypes>(
+		name: Name,
+		allowedTypes: TType,
+	): TreeSchema<
+		`${TScope}.${Name}`,
+		{
+			structFields: {
+				[""]: FieldSchema<typeof FieldKinds.sequence, NormalizeAllowedTypes<TType>>;
+			};
+		}
+	> {
+		const schema = new TreeSchema(this, this.scoped(name), {
+			structFields: { [""]: this.sequence(allowedTypes) },
+		});
+		this.addNodeSchema(schema);
+		return schema;
+	}
+
+	/**
 	 * Define (and add to this library) a {@link TreeSchema} for a {@link MapNode}.
 	 */
 	public map<Name extends TName, const T extends ImplicitFieldSchema>(
