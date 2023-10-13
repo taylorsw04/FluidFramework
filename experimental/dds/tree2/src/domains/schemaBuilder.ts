@@ -12,6 +12,7 @@ import {
 	NormalizeAllowedTypes,
 	SchemaBuilderBase,
 	SchemaBuilderOptions,
+	TreeSchema,
 } from "../feature-libraries";
 
 /**
@@ -104,6 +105,30 @@ export class SchemaBuilder<TScope extends string = string> extends SchemaBuilder
 	 * therefore this method is the same as the static version.
 	 */
 	public readonly sequence = SchemaBuilder.sequence;
+
+	/**
+	 * Define a schema for a {@link List}.
+	 *
+	 * @privateRemarks
+	 * TODO: remove the name and use structural identities to anonymize this
+	 */
+	public list<const Name extends string, const TType extends ImplicitAllowedTypes>(
+		name: Name,
+		allowedTypes: TType,
+	): TreeSchema<
+		`${TScope}.${Name}`,
+		{
+			structFields: {
+				[""]: FieldSchema<typeof FieldKinds.sequence, NormalizeAllowedTypes<TType>>;
+			};
+		}
+	> {
+		const schema = new TreeSchema(this, this.scoped(name), {
+			structFields: { [""]: this.sequence(allowedTypes) },
+		});
+		this.addNodeSchema(schema);
+		return schema;
+	}
 }
 
 /**
