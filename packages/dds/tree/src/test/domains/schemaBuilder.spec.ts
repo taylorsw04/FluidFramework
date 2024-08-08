@@ -52,20 +52,4 @@ describe("domains - SchemaBuilder", () => {
 			const y: number = x.number;
 		}
 	});
-
-	it("objectRecursive", () => {
-		const builder = new SchemaBuilder({ scope: "Test Recursive Domain" });
-
-		const recursiveObject = builder.objectRecursive("object", {
-			recursive: FlexFieldSchema.createUnsafe(FieldKinds.optional, [() => recursiveObject]),
-			number: SchemaBuilder.required(leaf.number),
-		});
-
-		type _0 = requireFalse<isAny<typeof recursiveObject>>;
-
-		function typeTests2(x: FlexTreeTypedNode<typeof recursiveObject>) {
-			const y: number = x.number;
-			const z: number | undefined = x.recursive?.recursive?.number;
-		}
-	});
 });

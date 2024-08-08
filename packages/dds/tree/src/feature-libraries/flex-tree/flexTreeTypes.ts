@@ -858,7 +858,7 @@ export type FlexTreeUnboxNode<TSchema extends FlexTreeNodeSchema> =
 			: TSchema extends FlexFieldNodeSchema
 				? FlexTreeFieldNode<TSchema>
 				: TSchema extends FlexObjectNodeSchema
-					? FlexTreeObjectNodeTyped<TSchema>
+					? FlexTreeObjectNodeTyped<FlexObjectNodeSchema>
 					: FlexTreeUnknownUnboxed;
 
 /**

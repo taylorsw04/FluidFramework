@@ -310,18 +310,6 @@ describe("flexTreeTypes", () => {
 		{
 			type _1 = requireTrue<areSafelyAssignable<FlexTreeUnboxNodeUnion<[Any]>, FlexTreeNode>>;
 		}
-
-		// Direct
-		{
-			type UnionBasic1 = FlexTreeUnboxNodeUnion<[typeof basicStruct]>;
-			type _1 = requireTrue<areSafelyAssignable<UnionBasic1, BasicStruct>>;
-		}
-		// Lazy
-		{
-			type _1 = requireTrue<
-				areSafelyAssignable<FlexTreeUnboxNodeUnion<[() => typeof basicStruct]>, BasicStruct>
-			>;
-		}
 		// Union
 		{
 			type _1 = requireTrue<
@@ -338,18 +326,6 @@ describe("flexTreeTypes", () => {
 				areSafelyAssignable<FlexTreeTypedNode<typeof basicFieldNode>, UnboxedFieldNode>
 			>;
 			type _2 = requireAssignableTo<UnboxedFieldNode, FlexTreeNode>;
-		}
-		// Recursive
-		{
-			type _1 = requireTrue<
-				areSafelyAssignable<FlexTreeUnboxNodeUnion<[typeof recursiveStruct]>, Recursive>
-			>;
-		}
-		// Recursive Lazy
-		{
-			type _1 = requireTrue<
-				areSafelyAssignable<FlexTreeUnboxNodeUnion<[() => typeof recursiveStruct]>, Recursive>
-			>;
 		}
 		// Type-Erased
 		{

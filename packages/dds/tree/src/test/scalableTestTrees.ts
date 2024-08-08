@@ -17,7 +17,12 @@ import {
 	typedJsonCursor,
 	type TypedJsonCompatible,
 } from "../domains/index.js";
-import { FieldKinds, FlexFieldSchema, SchemaBuilderBase } from "../feature-libraries/index.js";
+import {
+	FieldKinds,
+	FlexFieldSchema,
+	SchemaBuilderBase,
+	type FlexTreeSequenceField,
+} from "../feature-libraries/index.js";
 import type { FlexTreeView, TreeContent } from "../shared-tree/index.js";
 import { brand } from "../util/index.js";
 
@@ -231,7 +236,9 @@ export function readWideFlexTree(tree: FlexTreeView<typeof wideSchema.rootFieldS
 	let sum = 0;
 	let nodesCount = 0;
 	const root = tree.flexTree;
-	const field = root.content.foo;
+	const field = root.content.getBoxed(brand("foo")) as FlexTreeSequenceField<
+		readonly [typeof leaf.number]
+	>;
 	assert(field.length !== 0);
 	for (const currentNode of field) {
 		sum += currentNode;

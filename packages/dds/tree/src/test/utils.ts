@@ -90,6 +90,7 @@ import {
 	type ITreeCursorSynchronous,
 	CursorLocationType,
 	type MapTree,
+	type FieldKey,
 } from "../core/index.js";
 import {
 	cursorToJsonObject,
@@ -118,6 +119,10 @@ import {
 	MockNodeKeyManager,
 	type FlexTreeSchema,
 	cursorForMapTreeField,
+	type FlexTreeOptionalField,
+	type FlexAllowedTypes,
+	type FlexTreeRequiredField,
+	type FlexTreeField,
 } from "../feature-libraries/index.js";
 // eslint-disable-next-line import/no-internal-modules
 import { makeSchemaCodec } from "../feature-libraries/schema-index/codec.js";
@@ -163,6 +168,7 @@ import {
 	forEachInNestedMap,
 	tryGetFromNestedMap,
 	isReadonlyArray,
+	brand,
 } from "../util/index.js";
 import { isFluidHandle, toFluidHandleInternal } from "@fluidframework/runtime-utils/internal";
 import type { Client } from "@fluid-private/test-dds-utils";
@@ -1429,4 +1435,17 @@ function normalizeNewFieldContent(
 	}
 
 	return cursorForMapTreeField([mapTreeFromCursor(content)]);
+}
+
+/**
+ * Returns a flex optional or required field from the node.
+ * Temporary utility function to avoid having to cast the return value of `getBoxed`.
+ * It will be removed once the flex tree is refactored.
+ */
+export function getField<
+	T extends FlexTreeOptionalField<FlexAllowedTypes> | FlexTreeRequiredField<FlexAllowedTypes> =
+		| FlexTreeOptionalField<FlexAllowedTypes>
+		| FlexTreeRequiredField<FlexAllowedTypes>,
+>(n: { getBoxed(key: FieldKey): FlexTreeField }, key: string): T {
+	return n.getBoxed(brand(key)) as T;
 }

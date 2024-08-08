@@ -38,7 +38,7 @@ import {
 	SchemaBuilderBase,
 } from "../../../feature-libraries/index.js";
 import { brand, disposeSymbol } from "../../../util/index.js";
-import { flexTreeViewWithContent, forestWithContent } from "../../utils.js";
+import { flexTreeViewWithContent, forestWithContent, getField } from "../../utils.js";
 
 import {
 	getReadonlyContext,
@@ -267,8 +267,7 @@ describe("LazyField", () => {
 		const context = getReadonlyContext(forest, schema);
 
 		const holder = [...context.root.boxedIterator()][0];
-		assert(holder.is(Holder));
-		const field = holder.boxedF;
+		const field = getField(holder, "f");
 		assert(field instanceof LazyField);
 
 		assert(!field[isFreedSymbol]());
@@ -294,8 +293,7 @@ describe("LazyField", () => {
 		const context = getReadonlyContext(forest, schema);
 
 		const holder = [...context.root.boxedIterator()][0];
-		assert(holder.is(Holder));
-		const field = holder.boxedF;
+		const field = getField(holder, "f");
 		assert(field instanceof LazyField);
 
 		assert(!field[isFreedSymbol]());

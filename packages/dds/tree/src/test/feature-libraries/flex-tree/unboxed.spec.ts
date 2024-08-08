@@ -32,10 +32,12 @@ import {
 	type FlexAllowedTypes,
 	type FlexFieldKind,
 	FlexFieldSchema,
+	type FlexTreeNode,
 } from "../../../feature-libraries/index.js";
 import type { TreeContent } from "../../../shared-tree/index.js";
 
 import { contextWithContentReadonly } from "./utils.js";
+import { getField } from "../../utils.js";
 
 const rootFieldAnchor: FieldAnchor = { parent: undefined, fieldKey: rootFieldKey };
 
@@ -124,13 +126,13 @@ describe("unboxedField", () => {
 		const unboxed = unboxedField(context, fieldSchema, cursor);
 		assert(unboxed !== undefined);
 		assert.equal(unboxed.schema, objectSchema);
-		assert.equal(unboxed.name, "Foo");
+		assert.equal(getField(unboxed, "name").content, "Foo");
 
-		const unboxedChild = unboxed.child;
+		const unboxedChild = getField(unboxed, "child").content as FlexTreeNode;
 		assert(unboxedChild !== undefined);
 		assert.equal(unboxedChild.schema, objectSchema);
-		assert.equal(unboxedChild.name, "Bar");
-		assert.equal(unboxedChild.child, undefined);
+		assert.equal(getField(unboxedChild, "name").content, "Bar");
+		assert.equal(getField(unboxedChild, "child").content, undefined);
 	});
 
 	it("Sequence field", () => {
@@ -225,10 +227,11 @@ describe("unboxedTree", () => {
 
 		const unboxed = unboxedTree(context, objectSchema, cursor);
 
-		assert.equal(unboxed.name, "Foo");
-		assert(unboxed.child !== undefined);
-		assert.equal(unboxed.child.name, "Bar");
-		assert.equal(unboxed.child.child, undefined);
+		assert.equal(getField(unboxed, "name").content, "Foo");
+		assert(getField(unboxed, "child").content !== undefined);
+		const child = getField(unboxed, "child").content as FlexTreeNode;
+		assert.equal(getField(child, "name").content, "Bar");
+		assert.equal(getField(child, "child").content, undefined);
 	});
 });
 
