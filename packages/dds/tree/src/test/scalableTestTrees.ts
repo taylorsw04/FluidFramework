@@ -22,9 +22,13 @@ import {
 	FlexFieldSchema,
 	SchemaBuilderBase,
 	type FlexTreeSequenceField,
+	type FlexTreeUnknownUnboxed,
 } from "../feature-libraries/index.js";
 import type { FlexTreeView, TreeContent } from "../shared-tree/index.js";
 import { brand } from "../util/index.js";
+import { getField } from "./utils.js";
+// eslint-disable-next-line import/no-internal-modules
+import { LazyLeaf, LazyTreeNode } from "../feature-libraries/flex-tree/lazyNode.js";
 
 /**
  * Test trees which can be parametrically scaled to any size.
@@ -252,11 +256,11 @@ export function readDeepFlexTree(tree: FlexTreeView<typeof deepSchema.rootFieldS
 	value: number;
 } {
 	let depth = 0;
-	let currentNode = tree.flexTree.content;
-	while (currentNode.is(linkedListSchema)) {
-		currentNode = currentNode.foo;
+	let currentNode: FlexTreeUnknownUnboxed | undefined = tree.flexTree.content;
+	while (!(currentNode instanceof LazyLeaf)) {
+		assert(currentNode instanceof LazyTreeNode);
+		currentNode = getField(currentNode, "foo").content;
 		depth++;
 	}
-	assert(currentNode.is(leaf.number));
 	return { depth, value: currentNode.value };
 }
