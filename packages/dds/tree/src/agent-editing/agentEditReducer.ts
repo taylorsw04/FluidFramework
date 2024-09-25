@@ -98,6 +98,7 @@ export function applyAgentEdit<TSchema extends ImplicitFieldSchema>(
 			populateDefaults(treeEdit.content, definitionMap);
 
 			const treeSchema = normalizeFieldSchema(tree.schema);
+			// todo: this read will fail if root is an array :(
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const schemaIdentifier = (treeEdit.content as any)[typeField];
 
