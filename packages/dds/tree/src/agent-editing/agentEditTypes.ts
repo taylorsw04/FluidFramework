@@ -10,8 +10,6 @@ import type { typeField } from "./agentEditReducer.js";
  * TODO: The current scheme does not allow manipulation of arrays of primitive values because you cannot refer to them.
  * We could accomplish this via a path (probably JSON Pointer or JSONPath) from a possibly-null objectId, or wrap arrays in an identified object.
  *
- * TODO: We could add a "replace" edit type to avoid tons of little modifies.
- *
  * TODO: only 100 object fields total are allowed by OpenAI right now, so larger schemas will fail faster if we have a bunch of schema types generated for type-specific edits.
  *
  * TODO: experiment using https://github.com/outlines-dev/outlines (and maybe a llama model) to avoid many of the annoyances of OpenAI's JSON Schema subset.
@@ -39,6 +37,10 @@ import type { typeField } from "./agentEditReducer.js";
  * TODO: Give the model a final chance to evaluate the result.
  *
  * TODO: Separate system prompt into [system, user, system] for security.
+ *
+ * TODO: Top level arrays are not supported with current DSL.
+ *
+ * TODO: Structured Output fails when multiple schema types have the same first field name (e.g. id: sf.identifier on multiple types).
  */
 
 export const objectIdKey = "__fluid_objectId";
