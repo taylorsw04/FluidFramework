@@ -182,5 +182,4 @@ export type { MapNodeInsertableData } from "./simple-tree/index.js";
 export {
 	generateTreeEdits,
 	type GenerateTreeEditsOptions,
-	generateSuggestions,
 } from "./agent-editing/index.js";

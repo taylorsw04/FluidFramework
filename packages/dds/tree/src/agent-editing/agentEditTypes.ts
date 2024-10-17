@@ -4,7 +4,6 @@
  */
 
 import type { JsonPrimitive } from "../json-handler/index.js";
-import type { typeField } from "./agentEditReducer.js";
 
 /**
  * TODO: The current scheme does not allow manipulation of arrays of primitive values because you cannot refer to them.
@@ -41,8 +40,11 @@ import type { typeField } from "./agentEditReducer.js";
  * TODO: Top level arrays are not supported with current DSL.
  *
  * TODO: Structured Output fails when multiple schema types have the same first field name (e.g. id: sf.identifier on multiple types).
+ *
+ * TODO: Pass descriptions from schema metadata to the generated TS types that we put in the prompt
  */
 
+export const typeField = "__fluid_type";
 export const objectIdKey = "__fluid_objectId";
 
 export interface TreeEditObject {
@@ -68,7 +70,7 @@ export interface Edit {
 export type Selection = ObjectTarget | Range;
 
 export interface ObjectTarget {
-	[objectIdKey]: string;
+	target: string;
 }
 
 // TODO: Allow support for nested arrays
@@ -97,7 +99,7 @@ export interface SetRoot extends Edit {
 
 export interface Insert extends Edit {
 	type: "insert";
-	content: TreeEditObject;
+	content: TreeEditObject | JsonPrimitive;
 	destination: ObjectPlace | ArrayPlace;
 }
 

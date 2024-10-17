@@ -3,16 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { strict as assert } from "assert";
 import { SchemaFactory } from "../../simple-tree/index.js";
 // eslint-disable-next-line import/no-internal-modules
 import { TreeViewConfiguration } from "../../simple-tree/api/index.js";
 import { getView } from "../utils.js";
-import {
-	generateSuggestions,
-	generateTreeEdits,
-	initializeOpenAIClient,
-} from "../../agent-editing/index.js";
+import { generateTreeEdits, initializeOpenAIClient } from "../../agent-editing/index.js";
 
 const sf = new SchemaFactory("Planner");
 
@@ -61,30 +56,7 @@ export class Conference extends sf.object("Conference", {
 	sessionsPerDay: sf.number,
 }) {}
 
-describe.skip("Agent Editing Integration", () => {
-	process.env.OPENAI_API_KEY = "TODO "; // DON'T COMMIT THIS
-	process.env.AZURE_OPENAI_API_KEY = "TODO "; // DON'T COMMIT THIS
-	process.env.AZURE_OPENAI_ENDPOINT = "TODO ";
-	process.env.AZURE_OPENAI_DEPLOYMENT = "gpt-4o";
-
-	it("Suggestion Test", async () => {
-		const view = getView(new TreeViewConfiguration({ schema: Conference }));
-		view.initialize({ name: "Plucky Penguins", sessions: [], days: [], sessionsPerDay: 3 });
-		const openAIClient = initializeOpenAIClient("azure");
-		const abortController = new AbortController();
-		const suggestions = await generateSuggestions(openAIClient, view, 3);
-		for (const prompt of suggestions) {
-			const result = await generateTreeEdits({
-				openAIClient,
-				treeView: view,
-				prompt,
-				abortController,
-				maxModelCalls: 15,
-			});
-			assert.equal(result, "success");
-		}
-	});
-
+describe("Agent Editing Integration", () => {
 	it("Roblox Test", async () => {
 		const view = getView(new TreeViewConfiguration({ schema: Conference }));
 		view.initialize({
@@ -157,12 +129,13 @@ describe.skip("Agent Editing Integration", () => {
 			],
 			sessionsPerDay: 2,
 		});
-		const openAIClient = initializeOpenAIClient("azure");
+		const openAIClient = initializeOpenAIClient("openai");
 		const abortController = new AbortController();
 		await generateTreeEdits({
 			openAIClient,
 			treeView: view,
-			prompt: "Please alphabetize the sessions.",
+			prompt:
+				"Please reschedule the sessions so that sessions that children would enjoy are on the second day and sessions for adults are on the first day.",
 			abortController,
 			maxModelCalls: 15,
 			finalReviewStep: true,

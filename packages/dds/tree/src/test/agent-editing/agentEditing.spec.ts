@@ -89,7 +89,7 @@ describe("toDecoratedJson", () => {
 		const hydratedObject = hydrate(Root, new Root({ arr: [1, 2, 3] }));
 		assert.equal(
 			toDecoratedJson(idGenerator, hydratedObject),
-			JSON.stringify({ __fluid_objectId: "Root0", arr: [1, 2, 3] }),
+			JSON.stringify({ [objectIdKey]: "Root0", arr: [1, 2, 3] }),
 		);
 	});
 });

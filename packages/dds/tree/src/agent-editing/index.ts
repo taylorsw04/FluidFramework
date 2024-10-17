@@ -4,14 +4,13 @@
  */
 
 import { AzureOpenAI, OpenAI } from "openai";
-
 import type {
 	ChatCompletionCreateParams,
-	ResponseFormatJSONSchema,
 	// eslint-disable-next-line import/no-internal-modules
 } from "openai/resources/index.mjs";
+// eslint-disable-next-line import/no-internal-modules
+import { zodResponseFormat } from "openai/helpers/zod";
 
-import { assert } from "@fluidframework/core-utils/internal";
 // eslint-disable-next-line import/no-internal-modules
 import { fail } from "../util/utils.js";
 
@@ -26,15 +25,14 @@ import {
 import {
 	getEditingSystemPrompt,
 	getReviewSystemPrompt,
-	getSuggestingSystemPrompt,
 	toDecoratedJson,
 	type EditLog,
 } from "./promptGeneration.js";
-import { generateEditHandlers } from "./handlers.js";
-import { createResponseHandler, JsonHandler, type JsonObject } from "../json-handler/index.js";
 import type { EditWrapper, TreeEdit } from "./agentEditTypes.js";
 import { IdGenerator } from "./idGenerator.js";
 import { applyAgentEdit } from "./agentEditReducer.js";
+import { generateGenericEditTypes } from "./typeGeneration.js";
+import { z } from "zod";
 
 const DEBUG_LOG: string[] = [];
 
@@ -82,7 +80,8 @@ export async function generateTreeEdits(
 				simpleSchema.definitions,
 				options.validator,
 			);
-			editLog.push({ edit: result });
+			const explanation = result.explanation; // TODO: describeEdit(result, idGenerator);
+			editLog.push({ edit: { ...result, explanation } });
 			sequentialErrorCount = 0;
 		} catch (error: unknown) {
 			if (error instanceof Error) {
@@ -126,6 +125,8 @@ async function* generateEdits<TSchema extends ImplicitFieldSchema>(
 	idGenerator: IdGenerator,
 	editLog: EditLog,
 ): AsyncGenerator<TreeEdit> {
+	const [types, rootTypeName] = generateGenericEditTypes(simpleSchema, true);
+
 	const originalDecoratedJson =
 		options.finalReviewStep ?? false
 			? toDecoratedJson(idGenerator, options.treeView.root)
@@ -143,29 +144,28 @@ async function* generateEdits<TSchema extends ImplicitFieldSchema>(
 
 		DEBUG_LOG?.push(systemPrompt);
 
-		return new Promise((resolve: (value: TreeEdit | undefined) => void) => {
-			const editHandler = generateEditHandlers(simpleSchema, (jsonObject: JsonObject) => {
-				DEBUG_LOG?.push(JSON.stringify(jsonObject, null, 2));
-				const wrapper = jsonObject as unknown as EditWrapper;
-				if (wrapper.edit === null) {
-					DEBUG_LOG?.push("No more edits.");
-					return resolve(undefined);
-				} else {
-					return resolve(wrapper.edit);
-				}
-			});
+		const schema = types[rootTypeName] ?? fail("Root type not found.");
+		const wrapper = await getFromLlm<EditWrapper>(
+			systemPrompt,
+			options.openAIClient,
+			schema,
+			"A JSON object that represents an edit to a JSON tree.",
+		);
 
-			const responseHandler = createResponseHandler(
-				editHandler,
-				options.abortController ?? new AbortController(),
-			);
+		DEBUG_LOG?.push(JSON.stringify(wrapper, null, 2));
+		if (wrapper === undefined) {
+			DEBUG_LOG?.push("Failed to get response");
+			return undefined;
+		}
 
-			void responseHandler.processResponse(
-				streamFromLlm(systemPrompt, responseHandler.jsonSchema(), options.openAIClient),
-			);
-		}).then(async (result): Promise<TreeEdit | undefined> => {
-			if (result === undefined && (options.finalReviewStep ?? false) && !hasReviewed) {
+		if (wrapper.edit === null) {
+			DEBUG_LOG?.push("No more edits.");
+			if ((options.finalReviewStep ?? false) && !hasReviewed) {
 				const reviewResult = await reviewGoal();
+				if (reviewResult === undefined) {
+					DEBUG_LOG?.push("Failed to get review response");
+					return undefined;
+				}
 				hasReviewed = true;
 				if (reviewResult.goalAccomplished === "yes") {
 					return undefined;
@@ -173,13 +173,13 @@ async function* generateEdits<TSchema extends ImplicitFieldSchema>(
 					editLog.length = 0;
 					return getNextEdit();
 				}
-			} else {
-				return result;
 			}
-		});
+		} else {
+			return wrapper.edit;
+		}
 	}
 
-	async function reviewGoal(): Promise<ReviewResult> {
+	async function reviewGoal(): Promise<ReviewResult | undefined> {
 		const systemPrompt = getReviewSystemPrompt(
 			options.prompt,
 			idGenerator,
@@ -190,30 +190,12 @@ async function* generateEdits<TSchema extends ImplicitFieldSchema>(
 
 		DEBUG_LOG?.push(systemPrompt);
 
-		return new Promise((resolve: (value: ReviewResult) => void) => {
-			const reviewHandler = JsonHandler.object(() => ({
-				properties: {
-					goalAccomplished: JsonHandler.enum({
-						description:
-							'Whether the difference the user\'s goal was met in the "after" tree.',
-						values: ["yes", "no"],
-					}),
-				},
-				complete: (jsonObject: JsonObject) => {
-					DEBUG_LOG?.push(`Review result: ${JSON.stringify(jsonObject, null, 2)}`);
-					resolve(jsonObject as unknown as ReviewResult);
-				},
-			}))();
-
-			const responseHandler = createResponseHandler(
-				reviewHandler,
-				options.abortController ?? new AbortController(),
-			);
-
-			void responseHandler.processResponse(
-				streamFromLlm(systemPrompt, responseHandler.jsonSchema(), options.openAIClient),
-			);
+		const schema = z.object({
+			goalAccomplished: z
+				.enum(["yes", "no"])
+				.describe('Whether the user\'s goal was met in the "after" tree.'),
 		});
+		return getFromLlm<ReviewResult>(systemPrompt, options.openAIClient, schema);
 	}
 
 	let edit = await getNextEdit();
@@ -223,72 +205,27 @@ async function* generateEdits<TSchema extends ImplicitFieldSchema>(
 	}
 }
 
-/**
- * Prompts the provided LLM client to generate a list of suggested tree edits to perform.
- *
- * @internal
- */
-export async function generateSuggestions(
+async function getFromLlm<T>(
+	prompt: string,
 	openAIClient: OpenAI,
-	view: TreeView<ImplicitFieldSchema>,
-	suggestionCount: number,
-	guidance?: string,
-	abortController = new AbortController(),
-): Promise<string[]> {
-	let suggestions: string[] | undefined;
-
-	const suggestionsHandler = JsonHandler.object(() => ({
-		properties: {
-			edit: JsonHandler.array(() => ({
-				description:
-					"A list of changes that a user might want a collaborative agent to make to the tree.",
-				items: JsonHandler.string(),
-			}))(),
-		},
-		complete: (jsonObject: JsonObject) => {
-			suggestions = (jsonObject as { edit: string[] }).edit;
-		},
-	}))();
-
-	const responseHandler = createResponseHandler(suggestionsHandler, abortController);
-	const systemPrompt = getSuggestingSystemPrompt(view, suggestionCount, guidance);
-	await responseHandler.processResponse(
-		streamFromLlm(systemPrompt, responseHandler.jsonSchema(), openAIClient),
-	);
-	assert(suggestions !== undefined, "No suggestions were generated.");
-	return suggestions;
-}
-
-async function* streamFromLlm(
-	systemPrompt: string,
-	jsonSchema: JsonObject,
-	openAIClient: OpenAI,
-): AsyncGenerator<string> {
-	const llmJsonSchema: ResponseFormatJSONSchema.JSONSchema = {
-		schema: jsonSchema,
-		name: "llm-response",
-		strict: true, // Opt into structured output
-	};
+	structuredOutputSchema: Zod.ZodTypeAny,
+	description?: string,
+): Promise<T | undefined> {
+	const response_format = zodResponseFormat(structuredOutputSchema, "SharedTreeAI", {
+		description,
+	});
 
 	const body: ChatCompletionCreateParams = {
-		messages: [{ role: "system", content: systemPrompt }],
+		messages: [{ role: "system", content: prompt }],
 		model: clientModel.get(openAIClient) ?? "gpt-4o",
-		response_format: {
-			type: "json_schema",
-			json_schema: llmJsonSchema,
-		},
-		// TODO
-		// stream: true, // Opt in to streaming responses.
+		response_format,
 		max_tokens: 4096,
 	};
 
-	const result = await openAIClient.chat.completions.create(body);
-	const choice = result.choices[0];
-	assert(choice !== undefined, "Response included no choices.");
-	assert(choice.finish_reason === "stop", "Response was unfinished.");
-	assert(choice.message.content !== null, "Response contained no contents.");
-	// TODO: There is only a single yield here because we're not actually streaming
-	yield choice.message.content ?? "<error>";
+	const result = await openAIClient.beta.chat.completions.parse(body);
+	// TODO: fix types so this isn't null and doesn't need a cast
+	// The type should be derived from the zod schema
+	return result.choices[0]?.message.parsed as T | undefined;
 }
 
 /**
