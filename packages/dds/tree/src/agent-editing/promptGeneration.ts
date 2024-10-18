@@ -31,7 +31,7 @@ import {
 	type TreeEditValue,
 	type Range,
 } from "./agentEditTypes.js";
-import { IdGenerator } from "./idGenerator.js";
+import type { IdGenerator } from "./idGenerator.js";
 import { generateGenericEditTypes } from "./typeGeneration.js";
 // eslint-disable-next-line import/no-internal-modules
 import { createZodJsonValidator } from "typechat/zod";
@@ -63,28 +63,31 @@ export function toDecoratedJson(
 	return stringified;
 }
 
-export function getSuggestingSystemPrompt(
+export function getPlanningSystemPrompt(
+	userPrompt: string,
 	view: TreeView<ImplicitFieldSchema>,
-	suggestionCount: number,
-	userGuidance?: string,
+	appGuidance?: string,
 ): string {
 	const schema = normalizeFieldSchema(view.schema);
 	const promptFriendlySchema = getPromptFriendlyTreeSchema(getJsonSchema(schema.allowedTypes));
-	const decoratedTreeJson = toDecoratedJson(new IdGenerator(), view.root);
-	const guidance =
-		userGuidance !== undefined
-			? `Additionally, the user has provided some guidance to help you refine your suggestions. Here is that guidance: ${userGuidance}`
-			: "";
+	const role = `I'm an agent who makes plans for another agent to achieve a user-specified goal to update the state of an application.${
+		appGuidance === undefined
+			? ""
+			: `
+			The other agent follows this guidance: ${appGuidance}`
+	}`;
 
-	// TODO: security: user prompt in system prompt
-	return `
-	You are a collaborative agent who suggests possible changes to a JSON tree that follows a specific schema.
-	For example, for a schema of a digital whiteboard application, you might suggest things like "Change the color of all sticky notes to blue" or "Align all the handwritten text vertically".
-	Or, for a schema of a calendar application, you might suggest things like "Move the meeting with Alice to 3pm" or "Add a new event called 'Lunch with Bob' on Friday".
-	The tree that you are suggesting for is a JSON object with the following schema: ${promptFriendlySchema}
-	The current state of the tree is: ${decoratedTreeJson}.
-	${guidance}
-	Please generate exactly ${suggestionCount} suggestions for changes to the tree that you think would be useful.`;
+	const systemPrompt = `
+	${role}
+	The application state tree is a JSON object with the following schema: ${promptFriendlySchema}
+	The current state is: ${JSON.stringify(view.root)}.
+	The user requested that I accomplish the following goal:
+	"${userPrompt}"
+	I've made a plan to accomplish this goal by doing a sequence of edits to the tree.
+	Edits can include setting the root, inserting, modifying, removing, or moving elements in the tree.
+	Here is my plan:`;
+
+	return systemPrompt;
 }
 
 export function getEditingSystemPrompt(
@@ -93,6 +96,7 @@ export function getEditingSystemPrompt(
 	view: TreeView<ImplicitFieldSchema>,
 	log: EditLog,
 	appGuidance?: string,
+	plan?: string,
 ): string {
 	const schema = normalizeFieldSchema(view.schema);
 	const promptFriendlySchema = getPromptFriendlyTreeSchema(getJsonSchema(schema.allowedTypes));
@@ -124,6 +128,7 @@ export function getEditingSystemPrompt(
 	The top level object you produce is an "EditWrapper" object which contains one of "SetRoot", "Insert", "Modify", "Remove", "Move", or null.
 	${createZodJsonValidator(...generateGenericEditTypes(getSimpleSchema(schema), false)).getSchemaText()}
 	The tree is a JSON object with the following schema: ${promptFriendlySchema}
+	${plan !== undefined ? `You have made a plan to accomplish the user's goal. The plan is: "${plan}". You will perform one or more edits that correspond to that plan to accomplish the goal.` : ""}
 	${
 		log.length === 0
 			? ""

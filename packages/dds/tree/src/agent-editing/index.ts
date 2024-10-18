@@ -24,6 +24,7 @@ import {
 } from "../simple-tree/index.js";
 import {
 	getEditingSystemPrompt,
+	getPlanningSystemPrompt,
 	getReviewSystemPrompt,
 	toDecoratedJson,
 	type EditLog,
@@ -52,6 +53,7 @@ export interface GenerateTreeEditsOptions<TSchema extends ImplicitFieldSchema> {
 	maxSequentialErrors?: number;
 	validator?: (newContent: TreeNode) => void;
 	dumpDebugLog?: boolean;
+	plan?: boolean;
 }
 
 /**
@@ -127,6 +129,14 @@ async function* generateEdits<TSchema extends ImplicitFieldSchema>(
 ): AsyncGenerator<TreeEdit> {
 	const [types, rootTypeName] = generateGenericEditTypes(simpleSchema, true);
 
+	let plan: string | undefined;
+	if (options.plan !== undefined) {
+		plan = await getStringFromLlm(
+			getPlanningSystemPrompt(options.prompt, options.treeView, options.appGuidance),
+			options.openAIClient,
+		);
+	}
+
 	const originalDecoratedJson =
 		options.finalReviewStep ?? false
 			? toDecoratedJson(idGenerator, options.treeView.root)
@@ -140,6 +150,7 @@ async function* generateEdits<TSchema extends ImplicitFieldSchema>(
 			options.treeView,
 			editLog,
 			options.appGuidance,
+			plan,
 		);
 
 		DEBUG_LOG?.push(systemPrompt);
@@ -226,6 +237,20 @@ async function getFromLlm<T>(
 	// TODO: fix types so this isn't null and doesn't need a cast
 	// The type should be derived from the zod schema
 	return result.choices[0]?.message.parsed as T | undefined;
+}
+
+async function getStringFromLlm(
+	prompt: string,
+	openAIClient: OpenAI,
+): Promise<string | undefined> {
+	const body: ChatCompletionCreateParams = {
+		messages: [{ role: "system", content: prompt }],
+		model: clientModel.get(openAIClient) ?? "gpt-4o",
+		max_tokens: 4096,
+	};
+
+	const result = await openAIClient.chat.completions.create(body);
+	return result.choices[0]?.message.content ?? undefined;
 }
 
 /**

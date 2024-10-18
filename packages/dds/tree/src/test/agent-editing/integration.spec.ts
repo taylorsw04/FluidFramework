@@ -139,6 +139,7 @@ describe("Agent Editing Integration", () => {
 			abortController,
 			maxModelCalls: 15,
 			finalReviewStep: true,
+			plan: true,
 		});
 
 		const stringified = JSON.stringify(view.root, undefined, 2);
