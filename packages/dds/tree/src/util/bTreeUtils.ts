@@ -4,6 +4,8 @@
  */
 
 import { BTree } from "@tylerbu/sorted-btree-es6";
+// eslint-disable-next-line import-x/no-internal-modules
+import { union } from "@tylerbu/sorted-btree-es6/extended/union";
 
 import { brand, type Brand } from "./brand.js";
 
@@ -47,15 +49,12 @@ export function mergeTupleBTrees<K extends readonly unknown[], V>(
 	if (tree1 === undefined) {
 		return tree2 === undefined ? newTupleBTree<K, V>() : brand(tree2.clone());
 	}
-
-	const result: TupleBTree<K, V> = brand(tree1.clone());
 	if (tree2 === undefined) {
-		return result;
+		return brand(tree1.clone());
 	}
 
-	for (const [key, value] of tree2.entries()) {
-		result.set(key, value, !preferLeft);
-	}
-
-	return result;
+	// Use the new union operation with merge function for key conflicts
+	return union<TupleBTree<K, V>, K, V>(tree1, tree2, (key, val1, val2) =>
+		preferLeft ? val1 : val2,
+	);
 }
